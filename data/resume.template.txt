@@ -1,0 +1,70 @@
+# ATLAS-G PROTOCOL - CANDIDATE KNOWLEDGE GRAPH (TEMPLATE)
+# This file serves as the template for the verified source of truth.
+# Replace the placeholders below with your actual data.
+
+================================================================================
+IDENTITY
+================================================================================
+Name: [YOUR NAME]
+Title: [YOUR TITLE]
+Location: [CITY, STATE/COUNTRY]
+Specialization: [YOUR SPECIALIZATION, e.g., Regulated Industries (Healthcare/FinTech)]
+
+================================================================================
+CORE COMPETENCIES
+================================================================================
+- [CORE COMPETENCY 1]
+  - [SUB-COMPETENCY A]
+  - [SUB-COMPETENCY B]
+
+- [CORE COMPETENCY 2]
+  - [SUB-COMPETENCY C]
+  - [SUB-COMPETENCY D]
+
+================================================================================
+PROFESSIONAL EXPERIENCE
+================================================================================
+
+--- CURRENT: [JOB TITLE] ---
+Period: [START DATE] - Present
+Focus: [PRIMARY FOCUS]
+
+Projects:
+1. [PROJECT NAME 1]
+   - [TECHNOLOGY STACK]
+   - [KEY ARCHITECTURE DETAIL]
+   
+--- PREVIOUS: [PAST JOB TITLE] ---
+Period: [START DATE] - [END DATE]
+Company: [PAST COMPANY]
+Role: [PAST ROLE]
+
+Achievements:
+- [ACHIEVEMENT 1]
+- [ACHIEVEMENT 2]
+
+================================================================================
+TECHNICAL SKILLS
+================================================================================
+Languages: [LIST LANGUAGES]
+Frameworks: [LIST FRAMEWORKS]
+AI/ML: [LIST AI TOOLS]
+Cloud: [LIST CLOUD PLATFORMS]
+
+================================================================================
+PROJECT DEEP DIVES
+================================================================================
+
+[PROJECT: PROJECT NAME 1]
+Type: [PROJECT TYPE]
+Challenge: [THE PROBLEM YOU SOLVED]
+Solution: [YOUR ARCHITECTURAL SOLUTION]
+Outcome: [BUSINESS/TECHNICAL IMPACT]
+
+================================================================================
+VERIFICATION CHECKSUMS
+================================================================================
+[EMPLOYMENT_VERIFIED]: true
+[SKILLS_VERIFIED]: true
+[PROJECTS_VERIFIED]: true
+[LAST_UPDATED]: 2026-01-22

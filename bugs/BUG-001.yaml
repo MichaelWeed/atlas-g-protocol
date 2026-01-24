@@ -1,0 +1,28 @@
+id: BUG-001
+title: Agent Response Cutoff in Development
+status: resolved
+priority: High
+severity: Major
+created_date: 2026-01-24
+description: >
+  Agent responses were being truncated mid-sentence, especially during complex project queries.
+  Example truncation: "...built on AWS Lambda and Bedrock that" (ends without a period or final clause).
+steps_to_reproduce:
+  - Open Atlas-G Protocol (New Session).
+  - Type query: "Recent Projects".
+  - Observe the agent's response for truncation.
+expected_behavior: Agent should provide complete, grammatically correct sentences ending in terminal punctuation.
+actual_behavior: Agent stops mid-sentence, possibly due to model flakiness or aggressive length constraints in the fast model.
+affected_files:
+  - backend/agent.py
+  - backend/governance.py
+resolution:
+  root_cause: >
+    The 'gemini-3-flash-preview' model was being overly aggressive with the 'CONCISE' formatting rule,
+    leading to mid-sentence truncation when encountering complex clauses.
+  solution: >
+    Upgraded main response generation to 'gemini-3-pro-preview' for higher reasoning fidelity.
+    Increased 'max_output_tokens' from 800 to 1024.
+    Added explicit 'CRITICAL: Ensure every sentence is grammatically complete' instruction to the system prompt.
+    Expanded governance assertion patterns to include 'developed' and 'architected' for better project verification.
+  fix_commit: "Truncation-Fix-v1"

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp-config.schema.json",
+  "mcpServers": {
+    "atlas-g-protocol": {
+      "command": "python",
+      "args": ["-m", "backend.mcp_server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "GOOGLE_API_KEY": "${env:GOOGLE_API_KEY}",
+        "FIRESTORE_PROJECT_ID": "atlas-g-protocol",
+        "ATLAS_MCP_TOKEN": "${env:ATLAS_MCP_TOKEN}"
+      }
+    }
+  },
+  "tools": {
+    "query_resume": {
+      "description": "Query the candidate's resume using semantic search. Returns relevant experience, skills, and project details.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The question or topic to search for in the resume"
+          },
+          "context": {
+            "type": "string",
+            "enum": ["healthcare", "fintech", "general", "architecture"],
+            "description": "Optional domain context to scope the search"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    "verify_sec_filing": {
+      "description": "Verify SEC EDGAR filing claims against official records",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string",
+            "description": "Company name or ticker symbol"
+          },
+          "claim": {
+            "type": "string",
+            "description": "The claim to verify against SEC filings"
+          }
+        },
+        "required": ["company", "claim"]
+      }
+    },
+    "verify_employment_history": {
+      "description": "Cross-reference employment claims against the verified resume knowledge graph",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "employer": {
+            "type": "string",
+            "description": "Employer name to verify"
+          },
+          "role": {
+            "type": "string",
+            "description": "Role or title to verify"
+          },
+          "dates": {
+            "type": "string",
+            "description": "Employment date range to verify"
+          }
+        },
+        "required": ["employer"]
+      }
+    },
+    "audit_project_architecture": {
+      "description": "Deep-dive into a specific project's technical architecture and design decisions",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string",
+            "description": "Project name (e.g., 'GeneDx', 'Atlas Engine', 'VoiceVerdict')"
+          }
+        },
+        "required": ["project"]
+      }
+    }
+  }
+}
