@@ -155,3 +155,7 @@ Atlas-G Protocol/
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) for details.
+
+## 📢 Credits
+
+- **Audio**: [Emergency Alarm.wav](https://freesound.org/s/699248/) by Mozfoo (CC0)
