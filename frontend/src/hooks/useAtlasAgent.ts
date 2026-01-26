@@ -72,25 +72,72 @@ export function useAtlasAgent(): UseAtlasAgentReturn {
       });
     });
 
+    const unsubStream = atlasSocket.on('stream', (data) => {
+      const { chunk } = data as { chunk: string };
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.type === 'agent' && !lastMsg.metadata?.blocked) {
+          // Append to existing agent message if it's the current one
+          return [
+            ...prev.slice(0, -1),
+            { ...lastMsg, content: lastMsg.content + chunk }
+          ];
+        } else {
+          // Create new agent message for the first chunk
+          setIsProcessing(false); // Stop thinking spinner on first chunk
+          return [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              type: 'agent',
+              content: chunk,
+              timestamp: new Date(),
+            },
+          ];
+        }
+      });
+    });
+
     const unsubResponse = atlasSocket.on('response', (data) => {
       const response = data as ChatResponse;
       setIsProcessing(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          type: 'agent',
-          content: response.content,
-          timestamp: new Date(),
-          metadata: {
-            blocked: response.blocked,
-            factsVerified: response.facts_verified,
-            claimsFiltered: response.claims_filtered,
-            contactRequested: (response as any).contact_requested,
-            sessionTerminated: (response as any).session_terminated,
+      setMessages((prev) => {
+        const lastMsgIndex = prev.findLastIndex(m => m.type === 'agent');
+        
+        if (lastMsgIndex !== -1) {
+          const updatedMessages = [...prev];
+          updatedMessages[lastMsgIndex] = {
+            ...updatedMessages[lastMsgIndex],
+            content: response.content, // Final validated content
+            metadata: {
+              blocked: response.blocked,
+              factsVerified: response.facts_verified,
+              claimsFiltered: response.claims_filtered,
+              contactRequested: (response as any).contact_requested,
+              sessionTerminated: (response as any).session_terminated,
+            },
+          };
+          return updatedMessages;
+        }
+
+        // Fallback if no stream message was created (unlikely)
+        return [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            type: 'agent',
+            content: response.content,
+            timestamp: new Date(),
+            metadata: {
+              blocked: response.blocked,
+              factsVerified: response.facts_verified,
+              claimsFiltered: response.claims_filtered,
+              contactRequested: (response as any).contact_requested,
+              sessionTerminated: (response as any).session_terminated,
+            },
           },
-        },
-      ]);
+        ];
+      });
     });
 
     const unsubError = atlasSocket.on('error', (data) => {
@@ -111,6 +158,7 @@ export function useAtlasAgent(): UseAtlasAgentReturn {
       unsubConnect();
       unsubDisconnect();
       unsubAudit();
+      unsubStream();
       unsubResponse();
       unsubError();
       atlasSocket.disconnect();

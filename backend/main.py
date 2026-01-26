@@ -6,6 +6,7 @@ Exposes REST and WebSocket endpoints for the agentic portfolio.
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -106,9 +107,9 @@ app.add_middleware(
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
-    cors_allowed_origins=settings.allowed_origins_list
+    cors_allowed_origins="*"  # More permissive for production debugging
 )
-socket_app = socketio.ASGIApp(sio, app)
+socket_app = socketio.ASGIApp(sio, app, socketio_path="/socket.io")
 
 
 @sio.event
@@ -119,7 +120,8 @@ async def connect(sid, environ):
     await sio.emit("audit", {
         "action": "CONNECTION ESTABLISHED",
         "status": "PASS",
-        "details": f"Session: {sid[:8]}... from {origin}"
+        "details": f"Session: {sid[:8]}... from {origin}",
+        "timestamp": datetime.utcnow().isoformat()
     }, room=sid)
 
 
@@ -241,31 +243,10 @@ async def health_check():
     )
 
 
-# ============================================================================
-# Static Files & Frontend Routing (Catch-all)
-# ============================================================================
 
-if FRONTEND_PATH.exists():
-    app.mount("/assets", StaticFiles(directory=FRONTEND_PATH / "assets"), name="assets")
-    
-    @app.get("/{file_path:path}")
-    async def get_static_file(file_path: str):
-        # Prevent hijacking API or docs
-        if file_path.startswith(("api/", "docs", "redoc", "openapi.json", "health")):
-            raise HTTPException(status_code=404)
-            
-        file = FRONTEND_PATH / file_path
-        if file.exists() and file.is_file():
-            from fastapi.responses import FileResponse
-            return FileResponse(file)
-        
-        # Fallback to index.html for SPA routing
-        index_html = FRONTEND_PATH / "index.html"
-        if index_html.exists():
-            return HTMLResponse(content=index_html.read_text(encoding="utf-8"))
-        
-        raise HTTPException(status_code=404)
-
+# ============================================================================
+# API Endpoints (Defined BEFORE catch-all for precedence)
+# ============================================================================
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
@@ -348,6 +329,32 @@ async def resume_summary():
             if line.startswith("===") and line.endswith("===")
         ]
     }
+
+
+# ============================================================================
+# Static Files & Frontend Routing (Catch-all - MUST BE LAST)
+# ============================================================================
+
+if FRONTEND_PATH.exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_PATH / "assets"), name="assets")
+    
+    @app.get("/{file_path:path}")
+    async def get_static_file(file_path: str):
+        # Prevent hijacking API or docs
+        if file_path.startswith(("api/", "docs", "redoc", "openapi.json", "health")):
+            raise HTTPException(status_code=404)
+            
+        file = FRONTEND_PATH / file_path
+        if file.exists() and file.is_file():
+            from fastapi.responses import FileResponse
+            return FileResponse(file)
+        
+        # Fallback to index.html for SPA routing
+        index_html = FRONTEND_PATH / "index.html"
+        if index_html.exists():
+            return HTMLResponse(content=index_html.read_text(encoding="utf-8"))
+        
+        raise HTTPException(status_code=404)
 
 
 # ============================================================================

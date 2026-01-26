@@ -103,3 +103,37 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-md);
+  }
+
+  .titleSection {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .logo {
+    white-space: nowrap;
+    font-size: 1.25rem;
+  }
+
+  .title {
+    white-space: nowrap;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* Hide connection text and classification on mobile as requested */
+  .statusText,
+  .classification {
+    display: none;
+  }
+
+  .statusSection {
+    gap: 0;
+  }
+}

@@ -453,8 +453,16 @@ Respond with ONLY the category name."""
         for i in range(0, len(raw_sentences) - 1, 2):
             sentences.append(raw_sentences[i] + raw_sentences[i+1])
         # Add any trailing text without a delimiter
+        # Add any trailing text without a delimiter
         if len(raw_sentences) % 2 != 0 and raw_sentences[-1].strip():
-            sentences.append(raw_sentences[-1])
+            # CRITICAL FIX: User reports cut-off responses.
+            # If the last segment does NOT end with punctuation, it is likely a cut-off.
+            # We discard it to ensure the user only sees complete thoughts.
+            last_segment = raw_sentences[-1].strip()
+            if last_segment[-1] in ['.', '!', '?']:
+                 sentences.append(last_segment)
+            else:
+                 print(f"[GOVERNANCE] Discarding incomplete trailing sentence: '{last_segment[:50]}...'")
             
         validated_parts = []
         

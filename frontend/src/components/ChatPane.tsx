@@ -12,6 +12,7 @@ interface Message {
     factsVerified?: number;
     claimsFiltered?: number;
     sessionTerminated?: boolean;
+    contactRequested?: boolean;
   };
 }
 
@@ -199,21 +200,20 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   };
 
   const suggestionPool = [
-    "Technical Stack",
+    "Atlas Engine",
     "GCP Deployment",
     "Security Protocols",
     "Contact Michael",
-    "Core Competencies",
+    "Salesforce Experience",
     "Solution Architecture",
     "Agentic Workflows",
-    "Compliance Layer",
+    "Healthcare Projects",
     "Recent Projects",
-    "Hallucination Mitigation",
-    "MCP Integration",
-    "Healthcare Deep Dive",
-    "Fintech Compliance",
-    "VoiceVerdict UX",
-    "Audit Log Logic"
+    "VoiceVerdict Platform",
+    "Cloud Run Expertise",
+    "FinTech Compliance",
+    "Service Cloud Voice",
+    "Financial Compliance Auditor"
   ];
 
   const [currentSuggestions, setCurrentSuggestions] = useState<string[]>([]);
@@ -387,14 +387,13 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
       </div>
 
       <div className={styles.messages}>
-        {messages.length === 0 && (
+        {!messages.some(m => m.type === 'user' || m.type === 'agent') && (
           <div className={styles.welcome}>
             <div className={styles.welcomeTitle}>
               Welcome to the Atlas-G Protocol
             </div>
             <div className={styles.welcomeText}>
-              This portfolio is an autonomous agent demonstrating 
-              compliance-grade agentic architecture.
+              Michael's open-source portfolio agent, a compliance-grade agentic system (C-GAS).
             </div>
             <div className={styles.suggestions}>
               <span className={styles.suggestionLabel}>Operational Queries:</span>

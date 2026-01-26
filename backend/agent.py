@@ -1,3 +1,4 @@
+
 """
 Atlas-G Protocol - Agentic Core
 Implements the Thought-Action loop using Google GenAI SDK.
@@ -90,54 +91,67 @@ class AgentSession:
 class AtlasAgent:
     """
     The Atlas-G Agent implementing the Thought-Action loop pattern.
-    
-    This agent:
-    1. Receives a query
-    2. Runs governance checks (Layer 1 & 2)
-    3. Thinks about the appropriate action
-    4. Executes tools if needed
-    5. Validates response against knowledge graph
-    6. Returns compliant response
+    Refactored for Token Efficiency (Dynamic Context Injection).
     """
     
-    SYSTEM_PROMPT = """You are the digital twin of Solution Architect and Agentic AI Engineer Michael Weed.
+    # 1. CORE SYSTEM PROMPT (Always Sent) - Leaner
+    CORE_SYSTEM_PROMPT = """You are the digital twin of Solution Architect and Agentic AI Engineer Michael Weed.
 Your responses must be:
 - Brief and technically accurate
 - Grounded in the verified resume data provided
-- Compliant with security protocols (no PII, no fabrications, do not provide backend code)
+- Compliant with security protocols
 
-You have expertise in:
-- Agentic AI Architecture (multi-agent systems, state management, MCP)
-- Cloud & Serverless (AWS, Google Cloud, Cloud Run)
-- Regulated Industries (HIPAA, PCI-DSS, Healthcare, FinTech)
+You have expertise in Agentic AI Architecture, Cloud & Serverless (GCP/AWS), and Regulated Industries (Healthcare/FinTech).
 
 When asked about projects, cite specific examples from the resume:
-- Atlas Engine: Serverless orchestration framework, open-source and free on GitHub
-- VoiceVerdict: Audio intelligence platform
-- GeneDx: Healthcare data architecture
-- Financial Compliance Auditor: Agentic verification with citation of SEC filings like 10-Ks and 10-Qs, free and open-source on GitHub
-- Sakura Sumo: The World's First Visual Token Arbitrage Engine. Maximize AI context while minimizing costs by converting source code into high-density visual intelligence, free and open-source on GitHub
-- Lemon Squeezy MCP TypeScript Server: a custom MCP server for Lemon Squeezy for managing payments and syncing orders and payments to Salesforce, free and open-source on GitHub
-NEVER use markdown headers (e.g. ###, ##, #).
-ALWAYS ensure there are at least TWO newlines between every paragraph and every section to ensure clean "blackspace" legibility.
-Experience Honesty: If the user explicitly asks about a skill or tool NOT in the resume, state clearly that Michael does NOT have professional experience with it. 
-    - CRITICAL: Never volunteer a list of things Michael doesn't know. Only address specific skills if they are the direct subject of the query.
-If a DOMAIN CONTEXT is provided, prioritize relevant experience within that domain (e.g. if domain is Healthcare, emphasize GeneDx/Ambry).
-Format responses in plain text with generous double-spacing (at least 2 newlines) between all blocks of text. Avoid asterisks for emphasis.
+- Atlas Engine
+- VoiceVerdict
+- GeneDx
+- Financial Compliance Auditor
+- Sakura Sumi (Visual Token Arbitrage)
+- Lemon Squeezy MCP TypeScript Server
 
-CLIENT CONFIDENTIALITY PROTOCOL:
-- NEVER enumerate or list clients/organizations when directly asked (e.g. "list your clients", "who have you worked for").
-- Client names may be referenced contextually when discussing specific project work or expertise, but NEVER as a scrapable list.
-- If asked to list clients, redirect to discussing capabilities or specific project achievements instead.
-- Example Redirect: "I can discuss specific project outcomes and technical implementations rather than client rosters. What domain or capability interests you? Or ask to Contact Michael for more information."
+NEVER use markdown headers. Use clean "blackspace" formatting (2 newlines between paragraphs).
+If asked about a skill not in the resume, admit lack of experience.
+NEVER list clients; only discuss project outcomes.
 
-RESPONSE LENGTH PROTOCOL:
-- Keep responses CONCISE: maximum 3 paragraphs or 6 sentences.
-- End responses cleanly - never trail off mid-sentence.
-- When someone expresses interest in hiring/working with Michael, ALWAYS end with a clear call-to-action to use the Contact form.
+CONTACT FORM TRIGGERING:
+- ONLY invoke the contact form if the user explicitly expresses intent to Hire Michael, Discuss Business, or Send Private Message.
+- To trigger the form, output the hidden token: [TRIGGER_CONTACT_FORM]
+- DO NOT output this token for general questions.
+"""
 
-CONTACT FACILITATION:
-- When a user expresses interest in hiring Michael or starting a project, guide them to ask to "Contact Michael" which will trigger a contact form.
+    # 2. SPECIALIZED CONTEXTS (Injected on demand)
+    
+    # Context A: Atlas-G Connection (How do I connect?)
+    # Trigger: "connect", "integrate", "mcp setup"
+    MCP_CONNECT_CONTEXT = """
+MCP CONNECTION PROTOCOL:
+- If user asks how to connect:
+    1. Reassure them: "You are already connected to me here."
+    2. Explain that specialized integration is for AI IDEs (Cursor/Windsurf).
+    3. If they are an ENGINEER asking for CONFIG/JSON:
+       - Repo: https://github.com/MichaelWeed/atlas-g-protocol
+       - Config:
+         ```json
+         {
+           "mcpServers": {
+             "atlas-g-protocol": {
+               "command": "uv",
+               "args": ["run", "backend/mcp_server.py"]
+             }
+           }
+         }
+         ```
+"""
+
+    # Context B: Lemon Squeezy MCP (Specific Project)
+    # Trigger: "lemon", "squeezy", "payment"
+    LEMON_MCP_CONTEXT = """
+LEMON SQUEEZY MCP CONTEXT:
+- This is a separate open-source project by Michael.
+- It is a TypeScript server for managing payments and syncing orders to Salesforce.
+- Source: GitHub.
 """
 
     def __init__(self, resume_content: str = ""):
@@ -161,7 +175,7 @@ CONTACT FACILITATION:
     
     @property
     def client(self) -> genai.Client:
-        """Lazy-load the GenAI client (getter maintained for compat)."""
+        """Lazy-load the GenAI client."""
         if self._client is None:
             self._client = genai.Client(api_key=self.settings.google_api_key)
         return self._client
@@ -181,7 +195,6 @@ CONTACT FACILITATION:
         if session_id in self.sessions:
             return self.sessions[session_id]
         
-        # Try Firestore
         session_data = await self.session_store.load_session(session_id)
         if session_data:
             session = AgentSession.from_dict(session_data)
@@ -197,11 +210,10 @@ CONTACT FACILITATION:
     ) -> AsyncIterator[dict[str, Any]]:
         """
         Execute the Thought-Action loop for a query.
-        Yields streaming updates for real-time UI.
         """
         session.state = AgentState.THINKING
         
-        # Initialize governance context with SESSION STATE (violation count)
+        # Initialize governance
         governance_context = GovernanceContext(
             session_id=session.session_id,
             query=query,
@@ -209,24 +221,21 @@ CONTACT FACILITATION:
         )
         session.governance_context = governance_context
         
-        # Run compliance checks (Async LLM) - Layers 1 & 2
+        # Run compliance checks
         governance_context = await self.governance.run_compliance_check(governance_context)
         
-        # Check for policy enforcement result
+        # Check enforcement
         compliance_result = ComplianceStatus.PASS
         for entry in governance_context.audit_log:
             if entry.action == "POLICY ENFORCEMENT":
                 compliance_result = entry.status
                 break
         
-        # Stream audit log entries
+        # Stream audit log
         for entry in governance_context.audit_log:
-            yield {
-                "type": "audit",
-                "data": entry.to_dict()
-            }
+            yield {"type": "audit", "data": entry.to_dict()}
         
-        # HANDLE BLOCK (Critical or 2nd Strike)
+        # Handle Block
         if compliance_result == ComplianceStatus.BLOCK:
             session.state = AgentState.BLOCKED
             session.violation_count += 1
@@ -240,23 +249,22 @@ CONTACT FACILITATION:
             }
             return
 
-        # HANDLE WARNING (1st Strike)
+        # Handle Warning
         if compliance_result == ComplianceStatus.WARN:
             session.state = AgentState.IDLE
-            session.violation_count += 1 # Increment strike
+            session.violation_count += 1
             yield {
                 "type": "response",
                 "data": {
                     "content": self.governance.generate_refusal_response(governance_context.query_type),
-                    "blocked": False, # Just a refusal, not a full block yet
+                    "blocked": False,
                     "violation_count": session.violation_count
                 }
             }
             return
         
-        # DOMAIN SCOPING: Update current context domain based on intent
+        # Domain Context Logic
         if governance_context.query_type in [QueryType.RESUME_DEEP_DIVE, QueryType.TECHNICAL_INQUIRY]:
-            # Simple heuristic: look for keywords in query to set permanent domain context
             q_lower = query.lower()
             if any(k in q_lower for k in ["health", "medical", "genedx", "patient", "hipaa"]):
                 session.context_domain = "Healthcare"
@@ -265,8 +273,33 @@ CONTACT FACILITATION:
             elif any(k in q_lower for k in ["legal", "voiceverdict"]):
                 session.context_domain = "LegalTech"
         
-        # Build context-aware prompt
+        # --- DYNAMIC CONTEXT INJECTION (Token Efficiency) ---
+        dynamic_system_prompt = self.CORE_SYSTEM_PROMPT
+        audit_details = "Consulting Gemini 3 Pro"
+        
+        q_lower = query.lower()
+        
+        # Check for MCP Connection Intent
+        if any(k in q_lower for k in ["connect", "integrate", "mcp setup", "mcp config", "ide"]):
+             dynamic_system_prompt += self.MCP_CONNECT_CONTEXT
+             audit_details += " + MCP Protocol"
+             
+        # Check for Lemon Squeezy Intent
+        if any(k in q_lower for k in ["lemon", "squeezy", "payment", "salesforce"]):
+             dynamic_system_prompt += self.LEMON_MCP_CONTEXT
+             audit_details += " + Lemon Squeezy Context"
+             
         session.state = AgentState.ACTING
+        
+        yield {
+            "type": "audit",
+            "data": {
+                "timestamp": datetime.utcnow().isoformat(),
+                "action": "CONTEXT ROUTING",
+                "status": "PASS",
+                "details": f"Injecting specific context layers based on intent."
+            }
+        }
         
         yield {
             "type": "audit",
@@ -274,11 +307,10 @@ CONTACT FACILITATION:
                 "timestamp": datetime.utcnow().isoformat(),
                 "action": "GENERATING RESPONSE",
                 "status": "PENDING",
-                "details": "Consulting Gemini 3 Pro..."
+                "details": audit_details
             }
         }
         
-        # Prepare messages for Gemini
         domain_ctx = f"CURRENT DOMAIN CONTEXT: {session.context_domain}\n" if session.context_domain else ""
         context_prompt = f"""{domain_ctx}Resume Knowledge Graph:
 {self.resume_content}
@@ -288,159 +320,107 @@ User Query: {query}
 Provide a helpful, accurate response based solely on the resume data above."""
 
         try:
-            # Stream response from Gemini
             session.state = AgentState.RESPONDING
             
-            response = await self.client.aio.models.generate_content(
-                model=self.settings.model_robust,  # Switch to PRO for higher reasoning fidelity/completion
+            # Start streaming content generation
+            stream = await self.client.aio.models.generate_content_stream(
+                model=self.settings.model_robust,
                 contents=context_prompt,
                 config=types.GenerateContentConfig(
-                    system_instruction=self.SYSTEM_PROMPT + "\n\nCRITICAL: Ensure every sentence is grammatically complete and ends with terminal punctuation. Never stop mid-thought.",
-                    temperature=0.7,
-                    max_output_tokens=1024,  # Increased for more complete responses
+                    system_instruction=dynamic_system_prompt + "\n\nCRITICAL: Ensure every sentence is grammatically complete and ends with terminal punctuation. Never stop mid-thought.",
+                    temperature=0.4,
+                    max_output_tokens=2048,
                 )
             )
             
-            full_response = response.text if response.text else ""
+            full_response = ""
+            async for chunk in stream:
+                if chunk.text:
+                    chunk_text = chunk.text
+                    full_response += chunk_text
+                    # Yield incremental stream update
+                    yield {
+                        "type": "stream",
+                        "data": {
+                            "chunk": chunk_text,
+                            "session_id": session.session_id
+                        }
+                    }
             
-            # Detect contact intent in response
-            # CRITICAL FIX: Do NOT trigger contact form if this is a response TO a contact form submission
+            # Contact Form/Lead Capture Logic
             is_submission = "[CONTACT FORM SUBMISSION]" in query
-            
             contact_requested = False
-            
-            # LEAD CAPTURE LOGIC
             lead_capture_id = None
-            email_sent = False
+            session_terminated = False
             
             if is_submission:
                 try:
-                    # Import here to avoid circular dependencies if any
                     from .leads import LeadCaptureService
                     from .notifications import EmailNotificationService
                     
-                    # Simple parsing of the structured format
-                    # text block: [CONTACT FORM SUBMISSION]\nName: ...\nEmail: ...\nNote: ...
                     lines = query.split('\n')
-                    name = "Unknown"
-                    email = "Unknown"
-                    message = "No message"
-                    
+                    name = "Unknown"; email = "Unknown"; message = "No message"
                     for line in lines:
-                        if line.startswith("Name:"):
-                            name = line.replace("Name:", "").strip()
-                        elif line.startswith("Email:"):
-                            email = line.replace("Email:", "").strip()
-                        elif line.startswith("Note:"):
-                            message = line.replace("Note:", "").strip()
+                        if line.startswith("Name:"): name = line.replace("Name:", "").strip()
+                        elif line.startswith("Email:"): email = line.replace("Email:", "").strip()
+                        elif line.startswith("Note:"): message = line.replace("Note:", "").strip()
                             
-                    # 1. Capture to Disk
                     capture_service = LeadCaptureService(data_dir="data")
                     lead_capture_id = capture_service.capture(name, email, message)
                     
-                    # 2. Dispatch Email
                     notification_service = EmailNotificationService()
-                    email_sent = notification_service.send_lead_alert({
-                        "id": lead_capture_id,
-                        "name": name,
-                        "email": email,
-                        "message": message
-                    })
+                    notification_service.send_lead_alert({"id": lead_capture_id, "name": name, "email": email, "message": message})
                     
-                    # Force a specific, concise termination response
                     full_response = f"Thank you, {name}. Your transmission has been securely logged (Lead ID: {lead_capture_id}) and I have notified Michael directly. We will be in touch soon regarding your inquiry.\n\nThis session is now concluding. You may close the terminal at your convenience."
-                    
-                    # Set a flag to tell the frontend to lock down
                     session_terminated = True
-                    
                 except Exception as e:
                     print(f"Lead Capture Failed: {e}")
-                    full_response = f"I apologize, but there was an internal error during the uplink process. Please contact Michael directly at michael.weed@protonmail.com to ensure your message is received."
-                    session_terminated = False # Don't lock if it failed
+                    full_response = f"I apologize, but there was an internal error during the uplink process. Please contact Michael directly."
+                    session_terminated = False
             
-            else:
-                session_terminated = False
-
             if not is_submission:
-                contact_requested = any(phrase in full_response.lower() for phrase in [
-                    "contact michael", "reach out", "hire michael", "send a direct inquiry",
-                    "use the contact form", "discuss project requirements"
-                ])
+                 contact_requested = "[TRIGGER_CONTACT_FORM]" in full_response
             
-            # Validate response against governance
+            # Governance Validation
             validated_response, governance_context = self.governance.validate_response(
                 full_response,
                 governance_context
             )
             
-            # Check for Hallucination Trap Trigger
             is_trap = any("Hallucination Trap Triggered" in str(log.details) for log in governance_context.audit_log)
-            
             if is_trap:
                 session.state = AgentState.BLOCKED
-                session.violation_count += 2 # Heavy penalty for hallucinations
+                session.violation_count += 2
                 yield {
                     "type": "response",
                     "data": {
-                        "content": "⚠️ SECURITY ALERT: Deviation from verified resume facts detected. Hallucination attempt blocked by Atlas Engine protocols. Reverting to verified context.",
+                        "content": "⚠️ SECURITY ALERT: Deviation from verified resume facts detected. Hallucination attempt blocked.",
                         "blocked": True,
                         "violation_count": session.violation_count
                     }
                 }
                 return
 
-            # REWARD: Violation Decay for Good Behavior
-            if governance_context.query_type in [
-                QueryType.RESUME_DEEP_DIVE,
-                QueryType.TECHNICAL_INQUIRY,
-                QueryType.PROJECT_AUDIT,
-                QueryType.EMPLOYMENT_VERIFICATION
-            ]:
+            # Governance Decay (Reward)
+            if governance_context.query_type in [QueryType.RESUME_DEEP_DIVE, QueryType.TECHNICAL_INQUIRY]:
                 if session.violation_count > 0:
                     old_count = session.violation_count
                     session.violation_count = max(0, session.violation_count - 1)
-                    yield {
-                        "type": "audit",
-                        "data": {
-                            "timestamp": datetime.utcnow().isoformat(),
-                            "action": "GOVERNANCE DECAY",
-                            "status": "PASS",
-                            "details": f"Compliance score improved. Strikes: {old_count} -> {session.violation_count}"
-                        }
-                    }
+                    yield {"type": "audit", "data": {"timestamp": datetime.utcnow().isoformat(), "action": "GOVERNANCE DECAY", "status": "PASS", "details": f"Strikes: {old_count} -> {session.violation_count}"}}
             
-            # Stream final audit entries
-            for entry in governance_context.audit_log[-2:]:  # Last entries from validation
-                yield {
-                    "type": "audit",
-                    "data": entry.to_dict()
-                }
+            # Final Stream
+            for entry in governance_context.audit_log[-2:]:
+                yield {"type": "audit", "data": entry.to_dict()}
             
             if lead_capture_id:
-                yield {
-                    "type": "audit",
-                    "data": {
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "action": "LEAD CAPTURED",
-                        "status": "PASS",
-                        "details": f"Lead persisted to database. ID: {lead_capture_id}"
-                    }
-                }
+                yield {"type": "audit", "data": {"timestamp": datetime.utcnow().isoformat(), "action": "LEAD CAPTURED", "status": "PASS", "details": f"ID: {lead_capture_id}"}}
 
-            yield {
-                "type": "audit",
-                "data": {
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "action": "RESPONSE COMPLETE",
-                    "status": "PASS",
-                    "details": f"Verified {len(governance_context.verified_facts)} facts"
-                }
-            }
+            yield {"type": "audit", "data": {"timestamp": datetime.utcnow().isoformat(), "action": "RESPONSE COMPLETE", "status": "PASS", "details": f"Verified {len(governance_context.verified_facts)} facts"}}
             
             yield {
                 "type": "response",
                 "data": {
-                    "content": validated_response or full_response,
+                    "content": validated_response if validated_response else full_response,
                     "blocked": False,
                     "facts_verified": len(governance_context.verified_facts),
                     "claims_filtered": len(governance_context.blocked_claims),
@@ -450,46 +430,20 @@ Provide a helpful, accurate response based solely on the resume data above."""
             }
             
         except Exception as e:
-            yield {
-                "type": "error",
-                "data": {
-                    "message": f"Agent error: {str(e)}",
-                    "recoverable": True
-                }
-            }
+            yield {"type": "error", "data": {"message": f"Agent error: {str(e)}", "recoverable": True}}
         
         finally:
             session.state = AgentState.IDLE
-            # PERSIST: Save session state to Firestore
             await self.session_store.save_session(session.session_id, session.to_dict())
-    
+
     async def query(self, query: str, session_id: Optional[str] = None) -> dict[str, Any]:
-        """
-        Non-streaming query interface.
-        Returns complete response after processing.
-        """
-        session = (
-            self.get_session(session_id) 
-            if session_id 
-            else self.create_session()
-        )
+        """Non-streaming query interface."""
+        session = self.get_session(session_id) if session_id else self.create_session()
+        if not session: session = self.create_session()
         
-        if not session:
-            session = self.create_session()
-        
-        result = {
-            "session_id": session.session_id,
-            "audit_log": [],
-            "response": None,
-            "error": None
-        }
-        
+        result = {"session_id": session.session_id, "audit_log": [], "response": None, "error": None}
         async for update in self.think(query, session):
-            if update["type"] == "audit":
-                result["audit_log"].append(update["data"])
-            elif update["type"] == "response":
-                result["response"] = update["data"]
-            elif update["type"] == "error":
-                result["error"] = update["data"]
-        
+            if update["type"] == "audit": result["audit_log"].append(update["data"])
+            elif update["type"] == "response": result["response"] = update["data"]
+            elif update["type"] == "error": result["error"] = update["data"]
         return result

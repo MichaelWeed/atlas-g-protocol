@@ -9,7 +9,6 @@ interface AudioInputProps {
 export const AudioInput: React.FC<AudioInputProps> = ({ onTranscript, disabled }) => {
   const [isListening, setIsListening] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
   const recognitionRef = useRef<any>(null);
   const transcriptCallbackRef = useRef(onTranscript);
 
@@ -32,7 +31,6 @@ export const AudioInput: React.FC<AudioInputProps> = ({ onTranscript, disabled }
       recognition.onstart = () => {
         console.log('🎤 SpeechRecognition: onstart');
         setIsListening(true);
-        setHasPermission(true);
         setPermissionDenied(false);
       };
 
