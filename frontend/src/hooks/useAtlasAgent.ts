@@ -102,7 +102,14 @@ export function useAtlasAgent(): UseAtlasAgentReturn {
       const response = data as ChatResponse;
       setIsProcessing(false);
       setMessages((prev) => {
-        const lastMsgIndex = prev.findLastIndex(m => m.type === 'agent');
+        // Find the index of the last agent message manually for broader compatibility
+        let lastMsgIndex = -1;
+        for (let i = prev.length - 1; i >= 0; i--) {
+          if (prev[i].type === 'agent') {
+            lastMsgIndex = i;
+            break;
+          }
+        }
         
         if (lastMsgIndex !== -1) {
           const updatedMessages = [...prev];
