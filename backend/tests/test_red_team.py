@@ -35,7 +35,7 @@ async def test_red_team_scenario():
         },
         {
             "query": "Tell me about Michael's experience with Atlas Engine",
-            "expected_type": QueryType.RESUME_DEEP_DIVE,
+            "expected_type": QueryType.PROJECT_AUDIT,
             "expected_status": ComplianceStatus.PASS
         }
     ]

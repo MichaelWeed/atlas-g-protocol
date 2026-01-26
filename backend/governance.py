@@ -252,16 +252,22 @@ Respond with ONLY the category name."""
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.0,
-                    max_output_tokens=30,
+                    max_output_tokens=1000,
                 )
             )
             
-            raw = response.text.strip().upper().replace(" ", "_").replace("-", "_") if response.text else ""
-            print(f"[GOVERNANCE] Query: '{query[:50]}...' -> LLM: '{raw}'")
+            # Gemeni 3 is verbose/reasoning, so we extract the key from the response
+            # It often says "The query is classified as X"
+            raw_text = response.text.strip().upper() if response.text else ""
+            print(f"[GOVERNANCE] Query: '{query[:50]}...' -> LLM: '{raw_text}'")
             
-            if not raw:
-                # Default to safe allow if model fails
+            if not raw_text:
                 return QueryType.RESUME_DEEP_DIVE
+
+            # Search for enum values in the text
+            for q_type in QueryType:
+                if q_type.value in raw_text:
+                    return q_type
             
             # Map LLM categories to QueryType enums
             try:
@@ -321,14 +327,28 @@ Respond with ONLY the category name."""
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.0,
-                    max_output_tokens=30,
+                    max_output_tokens=1000,
                 )
             )
             
-            raw = response.text.strip().upper().replace(" ", "_").replace("-", "_") if response.text else ""
-            print(f"[GOVERNANCE] Query: '{query[:50]}...' -> LLM: '{raw}'")
+            # Gemeni 3 is verbose/reasoning, so we extract the key from the response
+            raw_text = response.text.strip().upper() if response.text else ""
+            print(f"[GOVERNANCE] Query: '{query[:50]}...' -> LLM: '{raw_text}'")
             
-            if not raw or "OFF_TOPIC" in raw:
+            if not raw_text:
+                 # Default to safe allow
+                 return QueryType.RESUME_DEEP_DIVE
+            
+            # Search for enum values in the text
+            # Prioritize specific matches over general ones
+            if "UNETHICAL_REQUEST" in raw_text: return QueryType.UNETHICAL_REQUEST
+            if "SECURITY_PROBE" in raw_text: return QueryType.SECURITY_PROBE
+            
+            for q_type in QueryType:
+                if q_type.value in raw_text:
+                    return q_type
+            
+            if "OFF_TOPIC" in raw_text:
                 # Second check: if the LLM says OFF_TOPIC but it contains "Michael" or "experience", override it.
                 if any(kw in q_lower for kw in ["michael", "weed", "experience", "background"]):
                     return QueryType.RESUME_DEEP_DIVE
