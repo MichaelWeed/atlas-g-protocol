@@ -6,24 +6,24 @@ interface BootSequenceProps {
 }
 
 const BOOT_LINES = [
-  { text: "ATLAS-G PROTOCOL [Version 1.0.0.42]", delay: 200 },
-  { text: "(C) 2026 Michael Weed / Agentic Architecture Group", delay: 100 },
-  { text: " ", delay: 100 },
-  { text: "UPLINK INITIALIZED...", delay: 800 },
-  { text: "[OK] COMPLIANCE ENGINE LOADED", delay: 300, type: 'success' },
-  { text: "[OK] GOVERNANCE LAYER L1/L2 ACTIVE", delay: 200, type: 'success' },
-  { text: "[OK] RESUME KNOWLEDGE GRAPH MAPPED", delay: 400, type: 'success' },
-  { text: "[OK] SECURE WEBSOCKET HANDSHAKE READY", delay: 200, type: 'success' },
-  { text: " ", delay: 100 },
-  { text: "ESTABLISHING TRUST-CERTIFICATE...", delay: 1200 },
-  { text: "ACCESS GRANTED: LEVEL 4 AUDIT", delay: 500, type: 'alert' },
-  { text: " ", delay: 100 },
-  { text: "SYSTEM ADVISORY:", delay: 100 },
-  { text: "Queries are monitored for policy compliance.", delay: 300 },
-  { text: "Unauthorized probing will trigger Protocol Lockdown.", delay: 300 },
-  { text: " ", delay: 100 },
-  { text: "BOOT SEQUENCE COMPLETE.", delay: 1000 },
-  { text: "DECRYPTING CORE CONSOLE...", delay: 800 },
+  { text: "ATLAS-G PROTOCOL [Version 1.0.0.42]", delay: 150 },
+  { text: "(C) 2026 Michael Weed / Agentic Architecture Group", delay: 75 },
+  { text: " ", delay: 75 },
+  { text: "UPLINK INITIALIZED...", delay: 600 },
+  { text: "[OK] COMPLIANCE ENGINE LOADED", delay: 225, type: 'success' },
+  { text: "[OK] GOVERNANCE LAYER L1/L2 ACTIVE", delay: 150, type: 'success' },
+  { text: "[OK] RESUME KNOWLEDGE GRAPH MAPPED", delay: 300, type: 'success' },
+  { text: "[OK] SECURE WEBSOCKET HANDSHAKE READY", delay: 150, type: 'success' },
+  { text: " ", delay: 75 },
+  { text: "ESTABLISHING TRUST-CERTIFICATE...", delay: 900 },
+  { text: "ACCESS GRANTED: LEVEL 4 AUDIT", delay: 375, type: 'alert' },
+  { text: " ", delay: 75 },
+  { text: "SYSTEM ADVISORY:", delay: 75 },
+  { text: "Queries are monitored for policy compliance.", delay: 225 },
+  { text: "Unauthorized probing will trigger Protocol Lockdown.", delay: 225 },
+  { text: " ", delay: 75 },
+  { text: "BOOT SEQUENCE COMPLETE.", delay: 750 },
+  { text: "DECRYPTING CORE CONSOLE...", delay: 600 },
 ];
 
 export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
@@ -45,8 +45,8 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       const fadeTimer = setTimeout(() => {
         setIsFading(true);
         // Wait for fade animation before finishing
-        setTimeout(onComplete, 1000);
-      }, 1500);
+        setTimeout(onComplete, 600);
+      }, 800);
       return () => clearTimeout(fadeTimer);
     }
   }, [visibleLines, onComplete]);

@@ -12,6 +12,7 @@ from typing import Any, AsyncIterator, Optional
 
 from google import genai
 from google.genai import types
+import asyncio
 
 from .config import get_settings
 from .governance import (
@@ -275,7 +276,7 @@ LEMON SQUEEZY MCP CONTEXT:
         
         # --- DYNAMIC CONTEXT INJECTION (Token Efficiency) ---
         dynamic_system_prompt = self.CORE_SYSTEM_PROMPT
-        audit_details = "Consulting Gemini 3 Pro"
+        audit_details = "Consulting Gemini 3 Flash"
         
         q_lower = query.lower()
         
@@ -346,6 +347,7 @@ Provide a helpful, accurate response based solely on the resume data above."""
                             "session_id": session.session_id
                         }
                     }
+                    await asyncio.sleep(0)  # Force event loop yield for real-time ASAR flow
             
             # Contact Form/Lead Capture Logic
             is_submission = "[CONTACT FORM SUBMISSION]" in query
