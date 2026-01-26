@@ -16,9 +16,8 @@ class Settings(BaseSettings):
     # 3.0 Flash for low-latency, high-throughput tasks (default)
     # 3.0 Pro for critical, complex reasoning
     # LAW: Strick adherence to preview IDs
-    model_fast: str = "gemini-3-flash-preview"
-    model_fast: str = "gemini-3-flash-preview"
-    model_robust: str = "gemini-3-flash-preview"  # Downgrading to Flash for cost optimization
+    model_fast: str = "gemini-2.0-flash-exp"
+    model_robust: str = "gemini-2.0-flash-exp"  # Downgrading to Flash for cost optimization
 
     # Google AI
     google_api_key: str = Field(default="", alias="GOOGLE_API_KEY")
