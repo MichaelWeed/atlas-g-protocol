@@ -69,8 +69,33 @@
         "required": ["employer"]
       }
     },
+    "get_professional_profile": {
+      "description": "Get a structured professional profile including summary, experience tenure, and categorized skills. Useful for candidate screening.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "include_summary": {
+            "type": "boolean",
+            "description": "Whether to include the narrative summary"
+          }
+        }
+      }
+    },
+    "check_availability": {
+      "description": "Check current availability status, start dates, and rate cards for contracting or full-time roles.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inquiry_type": {
+            "type": "string",
+            "enum": ["contract", "fte", "advisory", "general"],
+            "description": "Type of engagement inquiry"
+          }
+        }
+      }
+    },
     "audit_project_architecture": {
-      "description": "Deep-dive into a specific project's technical architecture and design decisions",
+      "description": "Deep-dive into a specific project's technical architecture, design decisions, and code repositories (GitHub).",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -16,6 +16,8 @@ from .tools.verification import (
     audit_project_architecture,
     initialize_verifier
 )
+from .tools.profile_extractor import extract_professional_profile
+from .tools.availability import check_current_availability
 
 
 # Initialize MCP server
@@ -152,6 +154,26 @@ def mcp_get_capabilities() -> dict:
         "capabilities": result.get("sections", []),
         "domains": ["Healthcare/HIPAA", "FinTech/PCI-DSS", "Agentic AI", "Cloud Architecture"]
     }
+
+
+@mcp.tool()
+def mcp_get_professional_profile(include_summary: bool = True) -> dict:
+    """
+    Get structured professional profile.
+    Returns summary, experience, and skills.
+    """
+    profile = extract_professional_profile(_resume_content)
+    if not include_summary:
+        profile.pop("summary", None)
+    return profile
+
+
+@mcp.tool()
+def mcp_check_availability(inquiry_type: Optional[str] = None) -> dict:
+    """
+    Check current availability and rate cards.
+    """
+    return check_current_availability(inquiry_type)
 
 
 # ============================================================================

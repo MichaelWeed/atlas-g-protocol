@@ -12,12 +12,14 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
-    # Model Configuration
-    # 3.0 Flash for low-latency, high-throughput tasks (default)
-    # 3.0 Pro for critical, complex reasoning
-    # LAW: Strick adherence to preview IDs
+    # ========================================================================
+    # 🚨 CRITICAL LOCK: DO NOT CHANGE THESE MODEL IDs.
+    # The Atlas-G Protocol is technically benchmarked ONLY against 3.0 Flash.
+    # Switching to 2.0 or Pro will break the Governance Layer's logic.
+    # ========================================================================
     model_fast: str = "gemini-3-flash-preview"
     model_robust: str = "gemini-3-flash-preview"
+    # ========================================================================
 
     # Google AI
     google_api_key: str = Field(default="", alias="GOOGLE_API_KEY")

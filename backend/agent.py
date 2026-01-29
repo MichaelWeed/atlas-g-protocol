@@ -212,6 +212,38 @@ LEMON SQUEEZY MCP CONTEXT:
         """
         Execute the Thought-Action loop for a query.
         """
+        # --- DIAGNOSTIC: STREAMING TEST (MOVED TO TOP) ---
+        clean_query = query.strip().lower()
+        if clean_query == "test:stream":
+            yield {"type": "audit", "data": {"timestamp": datetime.utcnow().isoformat(), "action": "DIAGNOSTIC", "status": "WARN", "details": "Running connectivity stream test"}}
+            session.state = AgentState.RESPONDING
+            
+            test_msg = "Starting stream test... 1... 2... 3... 4... 5... Connection Valid. [MODEL: GEMINI 3 FLASH]"
+            words = test_msg.split(" ")
+            
+            for word in words:
+                yield {
+                    "type": "stream",
+                    "data": {
+                        "chunk": word + " ",
+                        "session_id": session.session_id
+                    }
+                }
+                # Sleep enough to force a visible delay if streaming works
+                await asyncio.sleep(0.1) 
+            
+            yield {
+                "type": "response",
+                "data": {
+                    "content": test_msg,
+                    "blocked": False,
+                    "facts_verified": 0,
+                    "claims_filtered": 0
+                }
+            }
+            session.state = AgentState.IDLE
+            return
+
         session.state = AgentState.THINKING
         
         # Initialize governance
@@ -222,19 +254,16 @@ LEMON SQUEEZY MCP CONTEXT:
         )
         session.governance_context = governance_context
         
-        # Run compliance checks
-        governance_context = await self.governance.run_compliance_check(governance_context)
+        # Run compliance checks and stream audit log immediately
+        async for log_entry in self.governance.run_compliance_check(governance_context):
+            yield {"type": "audit", "data": log_entry.to_dict()}
         
-        # Check enforcement
+        # Check enforcement status from context
         compliance_result = ComplianceStatus.PASS
         for entry in governance_context.audit_log:
             if entry.action == "POLICY ENFORCEMENT":
                 compliance_result = entry.status
                 break
-        
-        # Stream audit log
-        for entry in governance_context.audit_log:
-            yield {"type": "audit", "data": entry.to_dict()}
         
         # Handle Block
         if compliance_result == ComplianceStatus.BLOCK:
@@ -273,7 +302,7 @@ LEMON SQUEEZY MCP CONTEXT:
                 session.context_domain = "FinTech"
             elif any(k in q_lower for k in ["legal", "voiceverdict"]):
                 session.context_domain = "LegalTech"
-        
+
         # --- DYNAMIC CONTEXT INJECTION (Token Efficiency) ---
         dynamic_system_prompt = self.CORE_SYSTEM_PROMPT
         audit_details = "Consulting Gemini 3 Flash"
@@ -335,10 +364,17 @@ Provide a helpful, accurate response based solely on the resume data above."""
             )
             
             full_response = ""
+            chunk_count = 0
             async for chunk in stream:
                 if chunk.text:
                     chunk_text = chunk.text
+                    chunk_count += 1
                     full_response += chunk_text
+                    
+                    # Log first few chunks to verify flow in Cloud Run logs
+                    if chunk_count <= 5:
+                        print(f"[{datetime.utcnow().isoformat()}] 🌊 STREAM CHUNK {chunk_count}: {chunk_text[:10]}...")
+                        
                     # Yield incremental stream update
                     yield {
                         "type": "stream",
@@ -347,7 +383,8 @@ Provide a helpful, accurate response based solely on the resume data above."""
                             "session_id": session.session_id
                         }
                     }
-                    await asyncio.sleep(0)  # Force event loop yield for real-time ASAR flow
+                    # Force event loop yield - increased to 0.05s to allow transport flush
+                    await asyncio.sleep(0.05)
             
             # Contact Form/Lead Capture Logic
             is_submission = "[CONTACT FORM SUBMISSION]" in query

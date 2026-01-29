@@ -25,13 +25,37 @@ from .agent import AtlasAgent
 # ============================================================================
 
 def load_resume() -> str:
-    """Load resume content from file."""
+    """Load resume content from file with diagnostic logging."""
     settings = get_settings()
     resume_path = Path(__file__).parent.parent / settings.resume_path
     
-    if resume_path.exists():
-        return resume_path.read_text(encoding="utf-8")
-    return ""
+    print(f"🔍 [INTERNAL DATA] Checking resume path: {resume_path}")
+    
+    if not resume_path.exists():
+        print(f"❌ [INTERNAL DATA] ERROR: Resume file NOT FOUND at {resume_path}")
+        # Check permissions of parent directory
+        parent = resume_path.parent
+        if parent.exists():
+            print(f"📁 [INTERNAL DATA] Parent directory exists: {parent}")
+            try:
+                files = os.listdir(parent)
+                print(f"📁 [INTERNAL DATA] Files in {parent}: {files}")
+            except Exception as e:
+                print(f"❌ [INTERNAL DATA] Cannot list parent: {e}")
+        else:
+            print(f"❌ [INTERNAL DATA] Parent directory does NOT exist: {parent}")
+        return ""
+    
+    try:
+        content = resume_path.read_text(encoding="utf-8")
+        if not content.strip():
+            print(f"⚠️ [INTERNAL DATA] WARNING: Resume file is EMPTY at {resume_path}")
+        else:
+            print(f"✅ [INTERNAL DATA] SUCCESS: Loaded {len(content)} characters from {resume_path}")
+        return content
+    except Exception as e:
+        print(f"❌ [INTERNAL DATA] FATAL: Error reading resume file: {e}")
+        return ""
 
 
 @asynccontextmanager
@@ -107,7 +131,9 @@ app.add_middleware(
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
-    cors_allowed_origins="*"  # More permissive for production debugging
+    cors_allowed_origins="*",
+    ping_timeout=60,
+    ping_interval=25
 )
 socket_app = socketio.ASGIApp(sio, app, socketio_path="/socket.io")
 

@@ -99,6 +99,11 @@ class ResumeVerifier:
                 "verified": True,
                 **details
             }
+            
+            # Extract Repo
+            repo_match = re.search(r'\[REPO:\s*(.+?)\]', detail_text)
+            if repo_match:
+                projects[project_name.lower()]["repo"] = repo_match.group(1).strip()
         
         return projects
     
@@ -247,6 +252,11 @@ def audit_project_architecture(
             architecture_details = {}
             if match:
                 section = match.group(1)
+                
+                # Extract Repo
+                repo_match = re.search(r'\[REPO:\s*(.+?)\]', section)
+                if repo_match:
+                    architecture_details["repo"] = repo_match.group(1).strip()
                 
                 # Parse structured fields
                 fields = ["Type", "Challenge", "Solution", "Outcome"]
