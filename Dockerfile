@@ -58,12 +58,14 @@ COPY --from=backend-builder /usr/local/bin /usr/local/bin
 COPY backend/ ./backend/
 COPY data/ ./data/
 COPY mcp_config.json ./
+COPY scripts/ ./scripts/
 
 # Copy frontend build from Stage 1
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Set ownership
-RUN chown -R atlas:atlas /app
+# Set ownership and permissions
+RUN chown -R atlas:atlas /app && \
+    chmod +x /app/scripts/docker-entrypoint.sh
 
 # Switch to non-root user
 USER atlas
@@ -81,5 +83,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-# Run the application
-CMD ["python", "-m", "uvicorn", "backend.main:application", "--host", "0.0.0.0", "--port", "8080"]
+# Entrypoint
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
