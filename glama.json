@@ -1,7 +1,11 @@
 {
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
   "name": "atlas-g-protocol",
   "description": "Agentic Portfolio System - A compliance-grade MCP server demonstrating autonomous workflows, resume RAG, and governance.",
   "repository": "https://github.com/MichaelWeed/atlas-g-protocol",
+  "maintainers": [
+    "MichaelWeed"
+  ],
   "keywords": [
     "portfolio",
     "agentic-ai",
@@ -12,10 +16,9 @@
   ],
   "icon": "https://michaelweed.xyz/assets/icon-atlas.png",
   "bugs": "https://github.com/MichaelWeed/atlas-g-protocol/issues",
-  "maintainers": [
-    {
-      "name": "Michael Weed",
-      "email": "atlas@protocol.dev"
-    }
+  "type": "mcp_server",
+  "framework": "FastMCP",
+  "transport": [
+    "stdio"
   ]
 }
