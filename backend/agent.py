@@ -155,6 +155,16 @@ LEMON SQUEEZY MCP CONTEXT:
 - Source: GitHub.
 """
 
+    # Context C: Hiring/Business Intent
+    # Trigger: "hire", "contract", "business", "project", "consulting"
+    HIRING_CONTEXT = """
+HIRING INTENT DETECTED:
+- The user is interested in engaging your professional services.
+- You MUST acknowledge this enthusiasm professionally.
+- CRITICAL: You MUST output the token [TRIGGER_CONTACT_FORM] at the end of your response to open the negotiation terminal.
+- Do not ask them to email you; use the token to open the HUD.
+"""
+
     def __init__(self, resume_content: str = ""):
         """Initialize the agent with resume content."""
         self.settings = get_settings()
@@ -318,6 +328,13 @@ LEMON SQUEEZY MCP CONTEXT:
         if any(k in q_lower for k in ["lemon", "squeezy", "payment", "salesforce"]):
              dynamic_system_prompt += self.LEMON_MCP_CONTEXT
              audit_details += " + Lemon Squeezy Context"
+
+        # Check for Hiring/Business Intent
+        intent_hiring = False
+        if any(k in q_lower for k in ["hire", "hiring", "contract", "business", "project", "consulting", "contact", "email", "manager"]):
+             dynamic_system_prompt += self.HIRING_CONTEXT
+             audit_details += " + Hiring Intent"
+             intent_hiring = True
              
         session.state = AgentState.ACTING
         
@@ -418,7 +435,10 @@ Provide a helpful, accurate response based solely on the resume data above."""
                     session_terminated = False
             
             if not is_submission:
-                 contact_requested = "[TRIGGER_CONTACT_FORM]" in full_response
+                 token_found = "[TRIGGER_CONTACT_FORM]" in full_response
+                 contact_requested = token_found or intent_hiring
+                 if token_found:
+                     full_response = full_response.replace("[TRIGGER_CONTACT_FORM]", "").strip()
             
             # Governance Validation
             validated_response, governance_context = self.governance.validate_response(

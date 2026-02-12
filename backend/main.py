@@ -18,6 +18,7 @@ import socketio
 
 from .config import get_settings
 from .agent import AtlasAgent
+from .mcp_server import mcp
 
 
 # ============================================================================
@@ -61,14 +62,16 @@ def load_resume() -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    # Startup
-    resume_content = load_resume()
-    app.state.agent = AtlasAgent(resume_content=resume_content)
-    app.state.resume_content = resume_content
-    print("🚀 Atlas-G Protocol initialized")
-    print(f"📄 Resume loaded: {len(resume_content)} characters")
-    
-    yield
+    # Chain FastMCP lifespan to ensure session managers are initialized
+    async with mcp_managed_app.lifespan(mcp_managed_app):
+        # Startup
+        resume_content = load_resume()
+        app.state.agent = AtlasAgent(resume_content=resume_content)
+        app.state.resume_content = resume_content
+        print("🚀 Atlas-G Protocol initialized")
+        print(f"📄 Resume loaded: {len(resume_content)} characters")
+        
+        yield
     
     # Shutdown
     print("👋 Atlas-G Protocol shutting down")
@@ -267,6 +270,17 @@ async def health_check():
         version="1.0.0",
         resume_loaded=bool(app.state.resume_content)
     )
+
+
+# ============================================================================
+# MCP Server Integration
+# ============================================================================
+
+# Mount the MCP HTTP app. Note that mcp.http_app() handles routing internally.
+# By mounting at /mcp, the internal routes of FastMCP will be relative to /mcp.
+# We store the instance to ensure we can manage its lifespan.
+mcp_managed_app = mcp.http_app()
+app.mount("/mcp", mcp_managed_app)
 
 
 

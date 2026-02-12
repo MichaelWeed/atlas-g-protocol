@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Optional
 import os
 
+import fastmcp
 from fastmcp import FastMCP
+
+# Set FastMCP to handle requests at the root of its mount point
+fastmcp.settings.streamable_http_path = "/"
 
 from .config import get_settings
 from .tools.resume_rag import query_resume, get_resume_sections, initialize_index
@@ -23,7 +27,7 @@ from .tools.availability import check_current_availability
 # Initialize MCP server
 mcp = FastMCP(
     name="atlas-g-protocol",
-    description="Agentic Portfolio System - Query and verify resume data via MCP"
+    instructions="Agentic Portfolio System - Query and verify resume data via MCP"
 )
 
 

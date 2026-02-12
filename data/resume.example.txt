@@ -1,0 +1,116 @@
+MICHAEL WEED
+Solution Architect | Agentic AI Engineer | Digital Engagement SME
+
+PROFESSIONAL SUMMARY
+Solution Architect and Agentic AI Engineer specializing in deploying autonomous workflows and enterprise platforms within high-compliance environments (HIPAA, PCI-DSS, SOC2). Bridges the gap between Salesforce/Service Cloud Voice architecture and modern Agentic AI engineering.
+
+CORE EXPERTISE
+- Agentic AI Architecture (MCP, LangGraph, Atlas Engine, VoiceVerdict)
+- Salesforce Ecosystem (Service Cloud Voice, Agentforce, Einstein Bots)
+- Cloud & Serverless (AWS Lambda, Bedrock, Step Functions, DynamoDB, Google Cloud Run, Cloud Build)
+- Regulated Industries/Frameworks (Healthcare, FinTech, Legal, GDPR, CCPA)
+
+PROFESSIONAL EXPERIENCE
+
+INDEPENDENT AI ENGINEER (Current)
+- Developing advanced orchestration frameworks (Atlas Engine) and OSS tools like the Lemon Squeezy MCP Server.
+- Brought AI-generated code to production: Developed, tested, and validated AI-generated Apex/Python code in developer orgs, passing QA/UAT and reducing coding time by 40-60%.
+- Integrated multiple systems: Salesforce, Slack, DocuSign, AWS Connect/Lambda, Jira, Outlook, Teams.
+- Output: Hundreds of Google docs, 150+ Confluence articles, dozens of Solution Design Documents (SDDs), and LucidChart workflows.
+
+NEURAFLASH (Senior Consultant/Solution Architect)
+- Led enterprise AI deployments for Global 2000 clients.
+- One of the first certified for Agentforce, back when it was called "Copilot."
+- Architected one of the first Agentforce deployments for BCU (Credit Union) 
+- Digital Engagement SME: Called upon for AI/SMS/Messaging needs across projects (Home Depot, Reddit).
+- Documentarian - I crafted initial artifacts and processes, then canonized them and published them for reusabe assets. 150+ internal Confluence pages for processes, 20+ deliverables like Digital Engagement Solution Design Document (SDD) template, Netlify deployed sites for global client users, and more.
+
+PROJECT PORTFOLIO
+
+[PROJECT: ATLAS-G PROTOCOL]
+[REPO: https://github.com/MichaelWeed/atlas-g-protocol]
+[LIVE: https://michaelweed.xyz]
+- My personal portfolio site and AI agent, deployed on Google Cloud Run with Cloud Build CI/CD.
+- Features a compliance-grade MCP server with multi-tool orchestration and governance layer.
+- Built with React/TypeScript frontend and FastAPI/Python backend, containerized with Docker.
+- Demonstrates real-time streaming, claim validation, and agentic workflows in production.
+
+[PROJECT: ATLAS ENGINE]
+[REPO: https://github.com/MichaelWeed/atlas-g-protocol-private]
+- Serverless orchestration framework built on AWS Lambda and Bedrock.
+- Automates B2B sales cycles, moving from web chat to an AI-powered phone call in under 60 seconds.
+- Utilizes a state machine for orchestration from web to Lex, and the hand-off to Connect
+- Syncs Leads to Salesforce and deletes Leads from Salesforce upon a "Delete me" request
+
+[PROJECT: WILLSCOT MOBILE MINI]
+- Role: Lead Architect for Einstein AI with SMS & Chat Integration.
+- Scope: Led architecture for a massive Digital Engagement deployment; collaborated with other architects due to scale, with 7,000+ users
+
+[PROJECT: STRATEGIC LEGAL PRACTICES (SLP)]
+- Role: Digital Engagement Architect.
+- Outcome: Successfully architected the DE side and supported voice architecture.
+- Deliverables included automatic summarization, PII scrubbing, and coordinating intake process with attorney hand-off
+- Challenge: Navigated complex technology viability assessments for pilot programs.
+
+[PROJECT: WORKFORCE ENGAGEMENT (Move.com, Litera, Greenway Health)]
+- Role: Workforce Engagement Specialist.
+- Context: Deployed Salesforce's new WFM product.
+- Challenge: Product was ~10 years behind market parity. Despite successful delivery of forecasting/scheduling rules, the product line was eventually cut by Salesforce and integrated into Service Cloud.
+- Outcome: Successfully delivered available features and managed client expectations during product turbulence.
+
+[PROJECT: GENEDX & AMBRY GENETICS]
+- Role: Healthcare Data Architect / SCV Architect.
+- Scope: Service Cloud Voice implementation ensuring HIPAA-compliant patient/provider communications and PHI protection.
+
+[PROJECT: BCU (Credit Union)]
+- Role: Architect.
+- Scope: Glia Chat Replacement + Agentforce (Copilot) implementation.
+- Note: One of the first Agentforce projects before General Availability (GA); involved frequent Salesforce support collaboration.
+
+[PROJECT: IRON MOUNTAIN]
+- Role: Digital Engagement Architect.
+- Scope: WhatsApp successful Implementation for Asia-Pacific (APAC), resulting in a second SOW and successful implementation for Latin-America (LATAM)
+
+[PROJECT: HOME DEPOT & REDDIT]
+- Role: Digital Engagement SME (Subject Matter Expert).
+- Scope: Consulted on specific AI/Messaging needs where internal teams lacked domain expertise.
+
+[PROJECT: VOICEVERDICT]
+- Architected a full-stack SaaS platform for AI-driven voice coaching and analysis.
+- Located at VoiceVerdict.com, practice your most difficult conversations such as sales calls, interviews, terminations, and other stressful situations.
+
+[PROJECT: FINANCIAL COMPLIANCE AUDITOR]
+- Developed a sovereign, air-gapped Visual RAG system for SEC filing verification with 0% speculation.
+
+[PROJECT: SAKURA SUMI]
+- A Visual Token Arbitrage Engine (VTAE) I created after reading research from DeepSeek.
+- Imagine compressing a 5-M token codebase to just 500-k tokens; now you can begin running inference on what used to be impossible. 
+- AI inference cost reduction and time-to-print (TTP) reduction
+
+[PROJECT: Lemon Squeezy TypeScript MCP Server ]
+- An MCP Server that lets you connect LLM agents to Lemon Squeezy payments system.
+- Allows querying payment information, refunding customers, and syncing payment info to Salesforce.
+
+CERTIFICATIONS - List a relative sample only, not all at once.
+Salesforce Certified AI Specialist (2024)
+AWS Certified AI Practitioner (Sep 2024)
+AWS Certified Cloud Practitioner (Aug 2024)
+Salesforce Certified Platform App Builder (2024)
+Salesforce Contact Center Accredited Professional (2024)
+Salesforce Certified AI Associate (2023)
+Salesforce Certified Associate (2023)
+Slack Certified Consultant (2022)
+Salesforce Certified Business Analyst (2022)
+Slack Certified Admin (2022)
+Salesforce Certified Service Cloud Consultant (2021)
+Salesforce Certified Administrator (2021)
+- The rest can be seen on my LinkedIn https://www.linkedin.com/in/michael-weed/details/certifications/
+
+Recommendations
+- A list of public recommendations of Michael can be found at https://www.linkedin.com/in/michael-weed/details/recommendations/
+
+Profilts 
+- I have several profiles that we can share depending on interest.
+- My Salesforce profile https://www.salesforce.com/trailblazer/michaelweed
+- My LinkedIn profile https://www.linkedin.com/in/michael-weed/
+- My GitHub profile https://github.com/MichaelWeed

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, type FormEvent } from 'react';
 import styles from './ChatPane.module.css';
 import { AudioInput } from './AudioInput';
+import { useScramble } from '../hooks/useScramble';
 
 interface Message {
   id: string;
@@ -28,6 +29,28 @@ const formatTime = (date: Date): string => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+// Agent Stats for HUD Data Manifest (synced with availability.json)
+const AGENT_STATS = {
+  status: 'AVAILABLE',
+  rate: '200 USD/HR',
+  protocol: 'MCP-NATIVE',
+  start: 'FEB 01 2026',
+} as const;
+
+// Transmission log sequence
+const TRANSMISSION_SEQUENCE = [
+  { text: '> ENCRYPTING PAYLOAD...', status: '[DONE]', delay: 0 },
+  { text: '> ESTABLISHING UPLINK...', status: '[CONNECTED]', delay: 400 },
+  { text: '> UPLOADING PACKET...', status: '[100%]', delay: 800 },
+  { text: '> ATLAS CORE: RECEIVED.', status: '', delay: 1200 },
+];
+
+// Scramble text component for decryption effect
+const ScrambleText: React.FC<{ text: string; delay?: number }> = ({ text, delay = 0 }) => {
+  const scrambled = useScramble(text, 400, delay);
+  return <>{scrambled}</>;
 };
 
 /**
@@ -114,13 +137,14 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   };
 
   useEffect(() => {
-    // Check for new blocked messages to trigger alarm
+    if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
-    if (lastMsg && lastMsg.id !== lastProcessedMessageId.current) {
+    
+    // 1. Handle New Message Actions (Scroll, Alarm, Jail)
+    if (lastMsg.id !== lastProcessedMessageId.current) {
       lastProcessedMessageId.current = lastMsg.id;
       
-      // Scroll to TOP of the latest message (not bottom of container)
-      // Use a small delay to ensure DOM is updated
+      // Scroll to TOP of the latest message
       setTimeout(() => {
         if (latestMessageRef.current) {
           latestMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -128,31 +152,29 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
       }, 50);
 
       if (lastMsg.metadata?.blocked) {
-        // Trigger Klaxon alarm
         playKlaxon();
-        
-        // Increment violation count
         setViolationCount(prev => {
           const newCount = prev + 1;
-          // Jail immediately on 1st violation for high-security feel
-          if (newCount >= 1) {
-            setIsJailed(true);
-          }
+          if (newCount >= 1) setIsJailed(true);
           return newCount;
         });
       }
+    }
 
-      // Auto-open contact form if agent detected contact intent
-      if (lastMsg.type === 'agent' && lastMsg.metadata?.contactRequested) {
+    // 2. Handle Final Metadata Updates (HUD Trigger, Termination)
+    // This runs even if ID is same, as long as metadata just arrived
+    if (lastMsg.type === 'agent') {
+      if (lastMsg.metadata?.contactRequested && lastTriggeredContactId.current !== lastMsg.id) {
         setShowContactForm(true);
+        lastTriggeredContactId.current = lastMsg.id;
       }
-
-      // Handle session termination
       if (lastMsg.metadata?.sessionTerminated) {
         setIsTerminated(true);
       }
     }
   }, [messages]);
+
+  const lastTriggeredContactId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isJailed) {
@@ -168,6 +190,8 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const [contactData, setContactData] = useState({ name: '', email: '', message: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTerminated, setIsTerminated] = useState(false);
+  const [transmissionStep, setTransmissionStep] = useState(0);
+  const [showCloseBtn, setShowCloseBtn] = useState(false);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -194,9 +218,18 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const handleContactSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSendMessage(`[CONTACT FORM SUBMISSION]\nName: ${contactData.name}\nEmail: ${contactData.email}\nNote: ${contactData.message}`);
-    // Don't close immediately, show success state
+    // Start transmission animation sequence
     setIsSubmitted(true);
+    setTransmissionStep(0);
+    setShowCloseBtn(false);
     setContactData({ name: '', email: '', message: '' });
+    
+    // Animate through transmission steps
+    TRANSMISSION_SEQUENCE.forEach((_, idx) => {
+      setTimeout(() => setTransmissionStep(idx + 1), TRANSMISSION_SEQUENCE[idx].delay + 300);
+    });
+    // Show close button after sequence completes
+    setTimeout(() => setShowCloseBtn(true), 1600);
   };
 
   const suggestionPool = [
@@ -219,9 +252,23 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const [currentSuggestions, setCurrentSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    const shuffled = [...suggestionPool].sort(() => 0.5 - Math.random());
-    setCurrentSuggestions(shuffled.slice(0, 4));
-  }, [messages.length]); // Re-shuffle when message count changes
+    const lastMsg = messages[messages.length - 1];
+    const contactIntent = lastMsg?.type === 'agent' && lastMsg.metadata?.contactRequested;
+
+    // Filter out restricted suggestions and shuffle the rest
+    const allowedSuggestions = suggestionPool.filter(s => s !== "Contact Michael");
+    const shuffled = [...allowedSuggestions].sort(() => 0.5 - Math.random());
+    
+    // Take 4 or 3 if we need to inject the Contact button
+    const selected = shuffled.slice(0, contactIntent ? 3 : 4);
+    
+    // Inject Contact Michael as the primary suggestion if intent detected
+    if (contactIntent) {
+      selected.unshift("Contact Michael");
+    }
+    
+    setCurrentSuggestions(selected);
+  }, [messages.length, messages[messages.length - 1]?.metadata?.contactRequested]);
 
   const [placeholder, setPlaceholder] = useState('Enter query...');
   const questions = [
@@ -314,64 +361,124 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         <div className={styles.contactOverlay}>
           <div className={styles.contactForm}>
             <div className={styles.contactHeader}>
-              <span>ENCRYPTED TRANSMISSION</span>
+              <span>SECURE UPLINK HUD</span>
               <button 
                 onClick={() => {
                   setShowContactForm(false);
                   setIsSubmitted(false);
+                  setTransmissionStep(0);
+                  setShowCloseBtn(false);
                   setContactData({ name: '', email: '', message: '' });
                 }}
-              >×</button>
+              >ABORT</button>
             </div>
+            
             {isSubmitted ? (
-               <div className={styles.successMessage}>
-                 <div className={styles.successIcon}>✓</div>
-                 <h3>TRANSMISSION SECURED</h3>
-                 <p>Your encrypted packet has been uplinked to the Atlas-G core.</p>
-                 <button 
-                   className={styles.submitBtn}
-                   onClick={() => {
-                     setShowContactForm(false);
-                     setIsSubmitted(false);
-                   }}
-                 >
-                   RETURN TO TERMINAL
-                 </button>
-               </div>
+              /* Transmission Log Animation */
+              <div className={styles.transmissionLog}>
+                {TRANSMISSION_SEQUENCE.slice(0, transmissionStep).map((line, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`${styles.transmissionLine} ${line.status === '[DONE]' || line.status === '[CONNECTED]' || line.status === '[100%]' ? styles.done : ''}`}
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    {line.text}
+                    {line.status && <span className={styles.status}>{line.status}</span>}
+                  </div>
+                ))}
+                
+                {showCloseBtn && (
+                  <div className={styles.transmissionComplete}>
+                    <h3>TRANSMISSION COMPLETE</h3>
+                    <button 
+                      className={styles.submitBtn}
+                      onClick={() => {
+                        setShowContactForm(false);
+                        setIsSubmitted(false);
+                        setTransmissionStep(0);
+                        setShowCloseBtn(false);
+                      }}
+                    >
+                      CLOSE CONNECTION
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <form onSubmit={handleContactSubmit}>
-                <div className={styles.formGroup}>
-                  <label>IDENTIFIER</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="Your Name"
-                    value={contactData.name}
-                    onChange={e => setContactData({...contactData, name: e.target.value})}
-                  />
+              /* Split-Pane HUD: Data Manifest + Input Console */
+              <div className={styles.hudBody}>
+                {/* Left Panel: Agent Stats */}
+                <div className={styles.hudDataManifest}>
+                  <div className={styles.hudSectionTitle}>AGENT MANIFEST</div>
+                  
+                  <div className={styles.hudStatRow}>
+                    <span className={styles.hudStatLabel}>STATUS</span>
+                    <div className={styles.hudStatusRow}>
+                      <div className={styles.hudLed} />
+                      <span className={styles.hudStatusText}>
+                        <ScrambleText text={AGENT_STATS.status} delay={100} />
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.hudStatRow}>
+                    <span className={styles.hudStatLabel}>RATE</span>
+                    <span className={styles.hudStatValue}>
+                      <ScrambleText text={AGENT_STATS.rate} delay={200} />
+                    </span>
+                  </div>
+                  
+                  <div className={styles.hudStatRow}>
+                    <span className={styles.hudStatLabel}>PROTOCOL</span>
+                    <span className={styles.hudStatValue}>
+                      <ScrambleText text={AGENT_STATS.protocol} delay={300} />
+                    </span>
+                  </div>
+                  
+                  <div className={styles.hudStatRow}>
+                    <span className={styles.hudStatLabel}>AVAILABLE</span>
+                    <span className={styles.hudStatValue}>
+                      <ScrambleText text={AGENT_STATS.start} delay={400} />
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.formGroup}>
-                  <label>RETURN CHANNEL</label>
-                  <input 
-                    type="email" 
-                    required 
-                    placeholder="your@email.com"
-                    value={contactData.email}
-                    onChange={e => setContactData({...contactData, email: e.target.value})}
-                  />
+                
+                {/* Right Panel: Input Console */}
+                <div className={styles.hudInputConsole}>
+                  <form onSubmit={handleContactSubmit}>
+                    <div className={styles.formGroup}>
+                      <label>IDENTIFIER</label>
+                      <input 
+                        type="text" 
+                        required 
+                        placeholder="ENTER NAME"
+                        value={contactData.name}
+                        onChange={e => setContactData({...contactData, name: e.target.value})}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>RETURN CHANNEL</label>
+                      <input 
+                        type="email" 
+                        required 
+                        placeholder="UPLINK@DOMAIN.COM"
+                        value={contactData.email}
+                        onChange={e => setContactData({...contactData, email: e.target.value})}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>NEGOTIATION TERMS</label>
+                      <textarea 
+                        required 
+                        placeholder="STATE YOUR PROPOSAL..."
+                        rows={4}
+                        value={contactData.message}
+                        onChange={e => setContactData({...contactData, message: e.target.value})}
+                      /></div>
+                    <button type="submit" className={styles.submitBtn}>INITIATE TRANSMISSION</button>
+                  </form>
                 </div>
-                <div className={styles.formGroup}>
-                  <label>MESSAGE DATA</label>
-                  <textarea 
-                    required 
-                    placeholder="How can we collaborate?"
-                    rows={4}
-                    value={contactData.message}
-                    onChange={e => setContactData({...contactData, message: e.target.value})}
-                  ></textarea>
-                </div>
-                <button type="submit" className={styles.submitBtn}>INITIATE UPLOAD</button>
-              </form>
+              </div>
             )}
           </div>
         </div>
@@ -398,7 +505,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
             <div className={styles.suggestions}>
               <span className={styles.suggestionLabel}>Operational Queries:</span>
               <div className={styles.suggestionGrid}>
-                {currentSuggestions.map(q => (
+                {currentSuggestions.map((q: string) => (
                   <button 
                     key={q}
                     className={styles.suggestion}
@@ -459,7 +566,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
             {/* Follow-up suggestions after the latest agent message */}
             {idx === messages.length - 1 && message.type === 'agent' && !isProcessing && !isJailed && !isTerminated && (
               <div className={styles.followUps}>
-                {currentSuggestions.map(q => (
+                {currentSuggestions.map((q: string) => (
                   <button 
                     key={q}
                     className={styles.followUpBtn}
