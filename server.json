@@ -1,0 +1,15 @@
+{
+  "name": "atlas-g-protocol",
+  "version": "1.0.0",
+  "description": "Agentic Portfolio System - A compliance-grade MCP server.",
+  "command": "python",
+  "args": [
+    "-m",
+    "backend.mcp_server"
+  ],
+  "env": {
+    "PYTHONPATH": "."
+  },
+  "dockerfile": "Dockerfile",
+  "readme": "README.md"
+}
