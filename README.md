@@ -6,6 +6,9 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
 ![Cloud Run](https://img.shields.io/badge/Google%20Cloud-Run-orange)
 ![MCP](https://img.shields.io/badge/MCP-Compatible-purple)
+<a href="https://glama.ai/mcp/servers/@MichaelWeed/atlas-g-protocol">
+<img width="380" height="200" src="https://glama.ai/mcp/servers/@MichaelWeed/atlas-g-protocol/badge" />
+</a>
 
 ## 🎯 Overview
 
