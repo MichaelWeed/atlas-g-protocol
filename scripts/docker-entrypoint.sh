@@ -9,7 +9,12 @@ if [ -n "$PORT" ]; then
     # Run the FastAPI/Uvicorn application
     exec python -m uvicorn backend.main:application --host 0.0.0.0 --port "$PORT"
 else
-    echo "🔒 Starting MCP Protocol Engine (stdio)..."
-    # Run the MCP server directly for Glama/Registry inspection
-    exec python -m backend.mcp_server
+    if [ $# -gt 0 ]; then
+        echo "🔒 Executing custom command: $@"
+        exec "$@"
+    else
+        echo "🔒 Starting MCP Protocol Engine (stdio)..."
+        # Run the MCP server directly for Glama/Registry inspection
+        exec python -m backend.mcp_server
+    fi
 fi
