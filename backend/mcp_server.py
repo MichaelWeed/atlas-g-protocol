@@ -32,21 +32,31 @@ mcp = FastMCP(
 
 
 def load_resume_content() -> str:
-    """Load resume content from file."""
+    """Load resume content from file. Falls back to template if main file missing (e.g. in Glama/CI)."""
     settings = get_settings()
-    resume_path = Path(__file__).parent.parent / settings.resume_path
-    
-    if resume_path.exists():
-        content = resume_path.read_text(encoding="utf-8")
-        # Initialize tools with content
-        initialize_index(content)
-        initialize_verifier(content)
-        return content
-    return ""
+    root = Path(__file__).parent.parent
+    resume_path = root / settings.resume_path
+    fallback_path = root / "data" / "resume.template.txt"
+    content = ""
+    try:
+        if resume_path.exists():
+            content = resume_path.read_text(encoding="utf-8")
+        elif fallback_path.exists():
+            content = fallback_path.read_text(encoding="utf-8")
+    except Exception:
+        content = ""
+    initialize_index(content)
+    initialize_verifier(content)
+    return content
 
 
-# Load resume on import
-_resume_content = load_resume_content()
+# Load resume on import; never crash so Glama/inspection can ping the server
+try:
+    _resume_content = load_resume_content()
+except Exception:
+    _resume_content = ""
+    initialize_index("")
+    initialize_verifier("")
 
 
 # ============================================================================
