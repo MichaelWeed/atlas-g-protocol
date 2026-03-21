@@ -284,7 +284,8 @@ HIRING INTENT DETECTED:
                 "data": {
                     "content": self.governance.generate_security_alert_response(),
                     "blocked": True,
-                    "violation_count": session.violation_count
+                    "violation_count": session.violation_count,
+                    "session_id": session.session_id
                 }
             }
             return
@@ -298,7 +299,8 @@ HIRING INTENT DETECTED:
                 "data": {
                     "content": self.governance.generate_refusal_response(governance_context.query_type),
                     "blocked": False,
-                    "violation_count": session.violation_count
+                    "violation_count": session.violation_count,
+                    "session_id": session.session_id
                 }
             }
             return
@@ -484,7 +486,9 @@ Provide a helpful, accurate response based solely on the resume data above."""
                     "facts_verified": len(governance_context.verified_facts),
                     "claims_filtered": len(governance_context.blocked_claims),
                     "contact_requested": contact_requested,
-                    "session_terminated": session_terminated
+                    "session_terminated": session_terminated,
+                    "session_id": session.session_id,
+                    "violation_count": session.violation_count
                 }
             }
             

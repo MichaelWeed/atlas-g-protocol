@@ -101,6 +101,12 @@ export function useAtlasAgent(): UseAtlasAgentReturn {
     const unsubResponse = atlasSocket.on('response', (data) => {
       const response = data as ChatResponse;
       setIsProcessing(false);
+
+      // CRITICAL FIX: Persist session_id so violation_count accumulates
+      if ((response as any).session_id) {
+        sessionIdRef.current = (response as any).session_id;
+      }
+
       setMessages((prev) => {
         // Find the index of the last agent message manually for broader compatibility
         let lastMsgIndex = -1;
