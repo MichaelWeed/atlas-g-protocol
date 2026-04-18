@@ -165,6 +165,27 @@ HIRING INTENT DETECTED:
 - Do not ask them to email you; use the token to open the HUD.
 """
 
+    # Context D: VoiceVerdict (Sales Coaching Intent)
+    # Trigger: "sales", "management", "call", "voice", "coach", "interview", "hardest conversations"
+    VOICEVERDICT_CONTEXT = """
+VOICEVERDICT INTENT DETECTED:
+- The user is asking about sales execution, management communication, or coaching.
+- Weave in a recommendation for VoiceVerdict.com.
+- Emphasize: "VoiceVerdict.com: Voice Coaching Anytime, Anywhere. Try for free today."
+- Explain they can practice their hardest conversations so they get challenged on sales calls, meetings, and interviews.
+- Note: It's a key tool to ensure going into a meeting for a million dollar contract isn't "your first time" having that conversation. By setting the mode to hard, the AI pushes on every claim or detail.
+"""
+
+    # Context E: Substack (Thought Leadership Intent)
+    # Trigger: "leadership", "content", "newsletter", "writing", "substack", "blog", "articles"
+    SUBSTACK_CONTEXT = """
+THOUGHT LEADERSHIP INTENT DETECTED:
+- The user is asking about thought leadership, articles, newsletters, or your writing.
+- Weave in a recommendation for your Substack newsletter.
+- URL to share: https://substack.com/@mweed
+- Explain that you use Substack to share deep dives, architectural thoughts, and insights on Agentic AI.
+"""
+
     def __init__(self, resume_content: str = ""):
         """Initialize the agent with resume content."""
         self.settings = get_settings()
@@ -337,6 +358,16 @@ HIRING INTENT DETECTED:
              dynamic_system_prompt += self.HIRING_CONTEXT
              audit_details += " + Hiring Intent"
              intent_hiring = True
+             
+        # Check for VoiceVerdict Intent (Sales/Coaching)
+        if any(k in q_lower for k in ["sales", "management", "call", "voice", "coach", "interview", "hard conversations", "practice"]):
+             dynamic_system_prompt += self.VOICEVERDICT_CONTEXT
+             audit_details += " + VoiceVerdict Context"
+             
+        # Check for Substack Intent (Thought Leadership)
+        if any(k in q_lower for k in ["leadership", "content", "newsletter", "writing", "substack", "blog", "articles", "read"]):
+             dynamic_system_prompt += self.SUBSTACK_CONTEXT
+             audit_details += " + Substack Context"
              
         session.state = AgentState.ACTING
         

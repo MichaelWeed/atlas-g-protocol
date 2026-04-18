@@ -36,7 +36,7 @@ PROJECT PORTFOLIO
 - Demonstrates real-time streaming, claim validation, and agentic workflows in production.
 
 [PROJECT: ATLAS ENGINE]
-[REPO: https://github.com/MichaelWeed/atlas-g-protocol-private]
+[REPO: https://github.com/MichaelWeed/atlas-g-protocol]
 - Serverless orchestration framework built on AWS Lambda and Bedrock.
 - Automates B2B sales cycles, moving from web chat to an AI-powered phone call in under 60 seconds.
 - Utilizes a state machine for orchestration from web to Lex, and the hand-off to Connect
@@ -77,7 +77,10 @@ PROJECT PORTFOLIO
 
 [PROJECT: VOICEVERDICT]
 - Architected a full-stack SaaS platform for AI-driven voice coaching and analysis.
-- Located at VoiceVerdict.com, practice your most difficult conversations such as sales calls, interviews, terminations, and other stressful situations.
+- Located at VoiceVerdict.com: Voice Coaching Anytime, Anywhere. Try for free today.
+- Allows users to practice all their hardest conversations so they get challenged on sales calls, meetings, and interviews.
+- Users get immediate feedback after a "call" to improve over the long-term.
+- Serves as a key sales tool to ensure going into a meeting for a million dollar contract isn't "your first time" having that conversation. By setting the mode to hard, the AI pushes on every claim or detail.
 
 [PROJECT: FINANCIAL COMPLIANCE AUDITOR]
 - Developed a sovereign, air-gapped Visual RAG system for SEC filing verification with 0% speculation.
@@ -109,8 +112,10 @@ Salesforce Certified Administrator (2021)
 Recommendations
 - A list of public recommendations of Michael can be found at https://www.linkedin.com/in/michael-weed/details/recommendations/
 
-Profilts 
+Profiles 
 - I have several profiles that we can share depending on interest.
+- My X profile https://x.com/MichaelWeedAI
+- My Substack newsletter https://substack.com/@mweed
 - My Salesforce profile https://www.salesforce.com/trailblazer/michaelweed
 - My LinkedIn profile https://www.linkedin.com/in/michael-weed/
 - My GitHub profile https://github.com/MichaelWeed

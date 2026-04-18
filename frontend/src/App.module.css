@@ -52,6 +52,25 @@
   color: var(--border-color);
 }
 
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.footerLink {
+  color: var(--text-muted);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footerLink:hover {
+  color: var(--accent-green);
+  transform: translateY(-1px);
+}
+
 /* Scan line effect overlay */
 .app::after {
   content: '';
